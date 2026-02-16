@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XRPL Analytics API — Wallet Scoring, Token Metrics & Network Stats</title>
+    <meta name="description" content="XRPL Analytics API for developers. Wallet trust scoring (0-100), token metrics, network stats. Free tier available. Built on Cloudflare Workers.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');body{font-family:'Inter',sans-serif}code,pre{font-family:'JetBrains Mono',monospace}</style>
+</head>
+<body class="bg-gray-950 text-gray-200 min-h-screen">
+    <nav class="border-b border-gray-800/50">
+        <div class="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <span class="text-2xl">🔌</span>
+                <span class="font-bold text-lg text-white">XRPL Analytics</span>
+                <span class="text-xs bg-indigo-600/20 text-indigo-400 px-2 py-0.5 rounded-full">API</span>
+            </div>
+            <div class="flex gap-4 text-sm">
+                <a href="#pricing" class="text-gray-400 hover:text-white">Pricing</a>
+                <a href="#docs" class="text-gray-400 hover:text-white">Docs</a>
+                <a href="https://stackstatsapps.com" class="text-gray-500 hover:text-gray-300">StackStats Apps</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-5xl mx-auto px-4">
+        <!-- Hero -->
+        <div class="py-20 text-center">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-4 leading-tight">XRPL Intelligence<br>via REST API</h1>
+            <p class="text-xl text-gray-400 mb-8 max-w-2xl mx-auto">Wallet trust scoring, token analytics, and network stats for the XRP Ledger. One API, sub-second responses, powered by Cloudflare Workers.</p>
+            <div class="flex justify-center gap-4">
+                <a href="#docs" class="px-8 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 font-semibold transition">Get Started Free</a>
+                <a href="#pricing" class="px-8 py-3 rounded-xl border border-gray-700 hover:border-indigo-500 font-medium transition">View Pricing</a>
+            </div>
+        </div>
+
+        <!-- Live Demo -->
+        <div class="bg-gray-900 rounded-2xl border border-gray-800 overflow-hidden mb-20">
+            <div class="px-6 py-4 border-b border-gray-800 flex items-center gap-3">
+                <div class="flex gap-1.5"><span class="w-3 h-3 rounded-full bg-red-500/50"></span><span class="w-3 h-3 rounded-full bg-yellow-500/50"></span><span class="w-3 h-3 rounded-full bg-green-500/50"></span></div>
+                <span class="text-xs text-gray-500">Try it live — enter any XRPL wallet address</span>
+            </div>
+            <div class="p-6">
+                <div class="flex gap-3 mb-4">
+                    <input id="demoAddr" type="text" value="rN7n3473SaZBCG4dFL83w7p1W9cganksPc" placeholder="rAddress..." class="flex-1 bg-gray-800 rounded-lg px-4 py-2 text-sm font-mono">
+                    <button onclick="tryDemo()" class="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg text-sm font-semibold transition">Query</button>
+                </div>
+                <pre id="demoResult" class="bg-gray-800/50 rounded-lg p-4 text-xs text-gray-300 overflow-auto max-h-64"><span class="text-gray-500">// Click "Query" to see live results</span></pre>
+            </div>
+        </div>
+
+        <!-- Endpoints -->
+        <div id="docs" class="mb-20">
+            <h2 class="text-2xl font-bold text-white mb-8 text-center">API Endpoints</h2>
+            <div class="space-y-4">
+                <div class="bg-gray-900 rounded-xl border border-gray-800 p-5">
+                    <div class="flex items-center gap-3 mb-2">
+                        <span class="px-2 py-0.5 rounded text-xs font-mono bg-green-500/10 text-green-400">GET</span>
+                        <code class="text-sm text-white">/api/v1/wallet/:address</code>
+                    </div>
+                    <p class="text-sm text-gray-400">Wallet overview — balance, transaction count, trust lines, created date</p>
+                </div>
+                <div class="bg-gray-900 rounded-xl border border-gray-800 p-5">
+                    <div class="flex items-center gap-3 mb-2">
+                        <span class="px-2 py-0.5 rounded text-xs font-mono bg-green-500/10 text-green-400">GET</span>
+                        <code class="text-sm text-white">/api/v1/wallet/:address/score</code>
+                    </div>
+                    <p class="text-sm text-gray-400">Trust score (0-100) — based on age, activity, balance, trust lines, and transaction volume</p>
+                </div>
+                <div class="bg-gray-900 rounded-xl border border-gray-800 p-5">
+                    <div class="flex items-center gap-3 mb-2">
+                        <span class="px-2 py-0.5 rounded text-xs font-mono bg-green-500/10 text-green-400">GET</span>
+                        <code class="text-sm text-white">/api/v1/wallet/:address/tokens</code>
+                    </div>
+                    <p class="text-sm text-gray-400">All tokens held by wallet — currency, issuer, balance, trust limit</p>
+                </div>
+                <div class="bg-gray-900 rounded-xl border border-gray-800 p-5">
+                    <div class="flex items-center gap-3 mb-2">
+                        <span class="px-2 py-0.5 rounded text-xs font-mono bg-green-500/10 text-green-400">GET</span>
+                        <code class="text-sm text-white">/api/v1/token/:currency/:issuer</code>
+                    </div>
+                    <p class="text-sm text-gray-400">Token info — total supply, holder count, issuer details, trust line stats</p>
+                </div>
+                <div class="bg-gray-900 rounded-xl border border-gray-800 p-5">
+                    <div class="flex items-center gap-3 mb-2">
+                        <span class="px-2 py-0.5 rounded text-xs font-mono bg-green-500/10 text-green-400">GET</span>
+                        <code class="text-sm text-white">/api/v1/network/status</code>
+                    </div>
+                    <p class="text-sm text-gray-400">XRPL network status — server state, ledger info, fee, reserves</p>
+                </div>
+            </div>
+
+            <!-- Auth -->
+            <div class="bg-gray-900 rounded-xl border border-gray-800 p-6 mt-8">
+                <h3 class="font-semibold text-white mb-3">Authentication</h3>
+                <p class="text-sm text-gray-400 mb-3">Pass your API key via header or query parameter:</p>
+                <pre class="bg-gray-800/50 rounded-lg p-3 text-xs overflow-auto"><code class="text-indigo-300">curl https://api.xrplanalytics.com/api/v1/network/status \
+  -H "X-API-Key: your_api_key"
+
+# or
+curl "https://api.xrplanalytics.com/api/v1/network/status?api_key=your_api_key"</code></pre>
+            </div>
+
+            <!-- Base URL -->
+            <div class="text-center mt-6">
+                <p class="text-sm text-gray-500">Base URL: <code class="text-indigo-400">https://api.xrplanalytics.com/api/v1</code></p>
+            </div>
+        </div>
+
+        <!-- Pricing -->
+        <div id="pricing" class="mb-20">
+            <h2 class="text-2xl font-bold text-white mb-8 text-center">Pricing</h2>
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="bg-gray-900 rounded-2xl border border-gray-800 p-6">
+                    <h3 class="font-bold text-white text-lg mb-1">Free</h3>
+                    <div class="text-3xl font-extrabold text-white mb-4">$0</div>
+                    <ul class="space-y-2 text-sm text-gray-400 mb-6">
+                        <li>✅ 100 requests / hour</li>
+                        <li>✅ All endpoints</li>
+                        <li>✅ Community support</li>
+                        <li class="text-gray-600">— No SLA</li>
+                    </ul>
+                    <a href="mailto:support@stackstatsapps.com?subject=XRPL%20Analytics%20API%20Key%20-%20Free" class="block w-full text-center py-2 rounded-lg border border-gray-700 hover:border-indigo-500 text-sm font-medium transition">Get Free Key</a>
+                </div>
+                <div class="bg-gray-900 rounded-2xl border-2 border-indigo-500/50 p-6 relative">
+                    <div class="absolute -top-3 left-6 bg-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-full">POPULAR</div>
+                    <h3 class="font-bold text-white text-lg mb-1">Pro</h3>
+                    <div class="text-3xl font-extrabold text-white mb-1">$29<span class="text-base text-gray-500">/mo</span></div>
+                    <ul class="space-y-2 text-sm text-gray-400 mb-6">
+                        <li>✅ 10,000 requests / hour</li>
+                        <li>✅ All endpoints</li>
+                        <li>✅ Priority support</li>
+                        <li>✅ 99.9% uptime SLA</li>
+                    </ul>
+                    <a href="mailto:support@stackstatsapps.com?subject=XRPL%20Analytics%20API%20Key%20-%20Pro" class="block w-full text-center py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-sm font-semibold transition">Get Pro Key</a>
+                </div>
+                <div class="bg-gray-900 rounded-2xl border border-gray-800 p-6">
+                    <h3 class="font-bold text-white text-lg mb-1">Enterprise</h3>
+                    <div class="text-3xl font-extrabold text-white mb-4">Custom</div>
+                    <ul class="space-y-2 text-sm text-gray-400 mb-6">
+                        <li>✅ Unlimited requests</li>
+                        <li>✅ Dedicated endpoints</li>
+                        <li>✅ Custom integrations</li>
+                        <li>✅ Direct engineering support</li>
+                    </ul>
+                    <a href="mailto:support@stackstatsapps.com?subject=XRPL%20Analytics%20-%20Enterprise" class="block w-full text-center py-2 rounded-lg border border-gray-700 hover:border-indigo-500 text-sm font-medium transition">Contact Us</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trust -->
+        <div class="text-center mb-20">
+            <div class="inline-flex gap-8 text-sm text-gray-500">
+                <span>⚡ Sub-second responses</span>
+                <span>🌐 Global edge (Cloudflare)</span>
+                <span>🔒 API key auth</span>
+                <span>📊 Live XRPL mainnet</span>
+            </div>
+        </div>
+    </div>
+
+    <footer class="py-8 px-4 border-t border-gray-800/50 text-center text-xs text-gray-600">
+        © 2026 <a href="https://stackstatsapps.com" class="hover:text-gray-400">StackStats Apps LLC</a> · <a href="mailto:support@stackstatsapps.com" class="hover:text-gray-400">support@stackstatsapps.com</a>
+    </footer>
+
+    <script>
+    async function tryDemo() {
+        const addr = document.getElementById('demoAddr').value.trim()
+        const result = document.getElementById('demoResult')
+        if (!addr) return
+        result.textContent = '// Loading...'
+        try {
+            const resp = await fetch(`https://api.xrplanalytics.com/api/v1/wallet/${addr}/score`, { headers: { 'X-API-Key': 'demo' } })
+            const data = await resp.json()
+            result.textContent = JSON.stringify(data, null, 2)
+        } catch (e) {
+            result.textContent = '// Error: ' + e.message
+        }
+    }
+    </script>
+</body>
+</html>
